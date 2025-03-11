@@ -1,5 +1,0 @@
-{
-  "AppSyncApiName": "parleme",
-  "DynamoDBBillingMode": "PAY_PER_REQUEST",
-  "DynamoDBEnableServerSideEncryption": false
-}
