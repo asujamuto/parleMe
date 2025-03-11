@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-parleme-dev-6e3c0-authRole",
+      "UnauthRoleArn": "arn:aws:iam::076529363020:role/amplify-parleme-dev-6e3c0-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::076529363020:role/amplify-parleme-dev-6e3c0-authRole",
+      "Region": "eu-north-1",
+      "DeploymentBucketName": "amplify-parleme-dev-6e3c0-deployment",
+      "UnauthRoleName": "amplify-parleme-dev-6e3c0-unauthRole",
+      "StackName": "amplify-parleme-dev-6e3c0",
+      "StackId": "arn:aws:cloudformation:eu-north-1:076529363020:stack/amplify-parleme-dev-6e3c0/2e348eb0-fea5-11ef-99c5-0ecaa85bcbb7",
+      "AmplifyAppId": "dt2tnxa0k5po4"
+    },
+    "categories": {
+      "api": {
+        "parleme": {}
+      }
+    }
+  }
+}
