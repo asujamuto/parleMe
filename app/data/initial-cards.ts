@@ -3,6 +3,7 @@ export const categories = [
   'czasowniki',
   'liczby',
   'zdania',
+  'przymiotnik'
 ] as const;
 
 export type Category = typeof categories[number];

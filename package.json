@@ -42,7 +42,6 @@
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
     "autoprefixer": "10.4.15",
-    "aws-amplify": "^6.13.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -66,17 +65,8 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
+    "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@aws-amplify/backend": "^1.14.2",
-    "@aws-amplify/backend-cli": "^1.4.12",
-    "aws-cdk": "^2.1000.2",
-    "aws-cdk-lib": "^2.180.0",
-    "constructs": "^10.4.2",
-    "esbuild": "^0.25.1",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
   }
 }

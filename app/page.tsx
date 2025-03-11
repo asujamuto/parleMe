@@ -34,7 +34,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm">
               <Trophy className="w-4 h-4 mr-2" />
-              Progress
+              Progres 
             </Button>
           </div>
         </div>
