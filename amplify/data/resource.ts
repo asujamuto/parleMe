@@ -6,13 +6,23 @@ adding a new "isDone" field as a boolean. The authorization rule below
 specifies that any unauthenticated user can "create", "read", "update", 
 and "delete" any "Todo" records.
 =========================================================================*/
-const schema = a.schema({
+/* const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
     })
     .authorization((allow) => [allow.guest()]),
-});
+}); */
+
+const schema = a.schema({
+  Words: a.model({
+    word: a.string(),
+    definition: a.string(),
+    lesson: a.integer(),
+    type: a.string()
+  })
+  .authorization(allow => [allow.guest()])
+})
 
 export type Schema = ClientSchema<typeof schema>;
 
