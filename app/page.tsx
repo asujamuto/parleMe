@@ -20,7 +20,6 @@ export default function Home() {
   
   const handleLessonChoice = (id: number) => {
     setActiveLesson(id);
-    console.log(id);
     router.push('/' + id)     
   }
   
