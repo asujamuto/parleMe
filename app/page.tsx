@@ -12,6 +12,10 @@ import { lessons } from "./data/lessons";
 import { Card, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 
+
+
+
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("study");
   const [activeLesson, setActiveLesson] = useState<number>();
