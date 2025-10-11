@@ -21,7 +21,11 @@ const schema = a.schema({
     lesson: a.integer(),
     type: a.string()
   })
-  .authorization(allow => [allow.guest()])
+    .authorization(allow => 
+      [
+        allow.guest(),
+        allow.publicApiKey().to(['read'])
+    ])
 })
 
 export type Schema = ClientSchema<typeof schema>;
@@ -29,7 +33,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'iam',
+    defaultAuthorizationMode: 'userPool',
   },
 });
 
