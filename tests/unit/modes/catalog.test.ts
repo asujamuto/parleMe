@@ -6,8 +6,11 @@ describe('STUDY_MODES', () => {
     expect(STUDY_MODES.map((mode) => mode.id)).toEqual(['flashcards', 'word-tower', 'matching', 'grammar-runner']);
   });
 
-  it('dostępne są tylko fiszki', () => {
-    expect(STUDY_MODES.filter((mode) => mode.status === 'available').map((mode) => mode.id)).toEqual(['flashcards']);
+  it('dostępne są fiszki i dopasowywanie', () => {
+    expect(STUDY_MODES.filter((mode) => mode.status === 'available').map((mode) => mode.id)).toEqual([
+      'flashcards',
+      'matching',
+    ]);
   });
 
   it('minimalne liczby słówek', () => {
@@ -51,9 +54,12 @@ describe('modeHref', () => {
     expect(modeHref('flashcards', 'a b')).toBe('/flashcards?set=a%20b');
   });
 
+  it('adres dopasowywania', () => {
+    expect(modeHref('matching', 'a b')).toBe('/matching?set=a%20b');
+  });
+
   it('tryby bez trasy → null', () => {
     expect(modeHref('word-tower', 's1')).toBeNull();
-    expect(modeHref('matching', 's1')).toBeNull();
     expect(modeHref('grammar-runner', 's1')).toBeNull();
   });
 });

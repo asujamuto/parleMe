@@ -29,8 +29,8 @@ export const STUDY_MODES: readonly StudyMode[] = [
   {
     id: 'matching',
     name: 'Dopasowywanie na czas',
-    description: 'Łącz pary polski – włoski, zanim skończy się czas.',
-    status: 'coming-soon',
+    description: 'Łącz pary polski – włoski jak najszybciej. Każdy błąd to +1 s.',
+    status: 'available',
     minWords: 4,
   },
   {
@@ -53,6 +53,8 @@ export function modeHref(modeId: StudyModeId, setId: string): string | null {
   switch (modeId) {
     case 'flashcards':
       return `/flashcards?set=${encodeURIComponent(setId)}`;
+    case 'matching':
+      return `/matching?set=${encodeURIComponent(setId)}`;
     default:
       return null;
   }

@@ -1,7 +1,7 @@
 // Minimalny service worker: pozwala otworzyć aplikację bez sieci (spec 001, SC-006).
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `parleme-${CACHE_VERSION}`;
-const PRECACHE_PAGES = ['/', '/import', '/flashcards', '/set'];
+const PRECACHE_PAGES = ['/', '/import', '/flashcards', '/set', '/matching'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(precache().finally(() => self.skipWaiting()));
