@@ -19,3 +19,23 @@ Scenariusz ręczny (`npm run dev`, 360 px, potem sama klawiatura):
 7. W trakcie rundy „Zakończ” → panel zestawu.
 8. Zestaw z „prego/proszę” i „per favore/proszę” — nigdy oba na jednej planszy.
 9. Cała runda samą klawiaturą: Tab po kafelkach, Enter/Spacja wybiera.
+
+## Scenariusz US2 — rekord zestawu
+
+1. Zestaw bez rekordu: ekran startu bez „Rekord”; po ukończonej rundzie wynik z „Nowy rekord!”.
+2. Ekran startu kolejnej rundy pokazuje „Rekord: X s”.
+3. Wolniejsza runda → wynik bez wyróżnienia, z „Rekord: X s”; szybsza → „Nowy rekord!” i nowy
+   czas na ekranie startu.
+4. „Zakończ” w trakcie rundy → rekord bez zmian.
+5. Inny zestaw ma własny rekord; usunięcie zestawu usuwa jego rekord (ponowny import → brak
+   rekordu).
+
+## Scenariusz US3 — postęp słówek
+
+1. Zestaw ITA5: w rundzie dopasowywania pomyl się przy słówku A, dokończ rundę.
+2. Otwórz fiszki tego zestawu → słówko A jest wśród pierwszych kart.
+3. Słówko opanowane w fiszkach (2 sesje „Znam”) → błąd przy nim w dopasowywaniu → licznik
+   „Opanowane” na panelu maleje o 1.
+4. Kilka rund bezbłędnych → „Opanowane” nie rośnie od samego dopasowywania.
+5. Nowa runda dopasowywania → na planszy najpierw słówka ostatnio „Nie znam”.
+6. „Zakończ” w trakcie rundy → postęp bez zmian.

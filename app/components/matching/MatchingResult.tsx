@@ -4,17 +4,19 @@ import Link from 'next/link';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatSeconds } from '@/lib/matching/game';
+import type { RecordOutcome } from '@/lib/preferences/matching-records';
 import type { WordEntry } from '@/lib/word-sets/types';
 
 interface MatchingResultProps {
   timeMs: number;
+  record: Pick<RecordOutcome, 'isNewRecord' | 'bestMs'>;
   mistakes: number;
   errorPairs: WordEntry[];
   exitHref: string;
   onRestart: () => void;
 }
 
-export function MatchingResult({ timeMs, mistakes, errorPairs, exitHref, onRestart }: MatchingResultProps) {
+export function MatchingResult({ timeMs, record, mistakes, errorPairs, exitHref, onRestart }: MatchingResultProps) {
   return (
     <section aria-labelledby="matching-result-heading" className="space-y-6">
       <h2 id="matching-result-heading" className="text-2xl font-bold">
@@ -25,6 +27,9 @@ export function MatchingResult({ timeMs, mistakes, errorPairs, exitHref, onResta
         <div className="rounded-md border p-3">
           <dt className="text-xs text-muted-foreground">Czas</dt>
           <dd className="text-3xl font-bold tabular-nums">{formatSeconds(timeMs)}</dd>
+          <dd className={record.isNewRecord ? 'mt-1 text-sm font-bold text-primary' : 'mt-1 text-xs text-muted-foreground'}>
+            {record.isNewRecord ? 'Nowy rekord!' : `Rekord: ${formatSeconds(record.bestMs)}`}
+          </dd>
         </div>
         <div className="rounded-md border p-3">
           <dt className="text-xs text-muted-foreground">Błędy</dt>

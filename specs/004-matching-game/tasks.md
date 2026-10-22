@@ -11,7 +11,7 @@ description: "Task list for 004-matching-game — scope P1 (User Story 1)"
 
 **Tests**: Wymagane przez konstytucję (zasada V) dla logiki rundy; UI ręcznie wg quickstart.md.
 
-**Organization**: Zakres to User Story 1 (P1). US2 (rekord) i US3 (postęp) — kolejne `/speckit-tasks`.
+**Organization**: Zakres: User Story 1 (P1), User Story 2 (P2) i User Story 3 (P3) — wszystkie historyjki specyfikacji.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -52,9 +52,66 @@ description: "Task list for 004-matching-game — scope P1 (User Story 1)"
 
 ---
 
+## Phase 4: User Story 2 - Rekord zestawu (Priority: P2)
+
+**Goal**: Najlepszy czas ukończonej rundy jest zapamiętywany dla każdego zestawu, pokazywany na ekranie startu i w wyniku; pobicie rekordu jest wyróżnione.
+
+**Independent Test**: quickstart.md „Scenariusz US2”.
+
+### Tests for User Story 2 ⚠️
+
+- [X] T012 [P] [US2] Write tests in tests/unit/preferences/matching-records.test.ts per contracts/matching-game.md: `isNewRecord(undefined, 5000)` true, `isNewRecord(5000, 4999)` true, `isNewRecord(5000, 5000)` false; `submitMatchingResult('s1', 20000, now, storage)` on empty storage → `{ isNewRecord: true, previousBestMs: null, bestMs: 20000 }` and saved under key `parleme.matchingRecords` with `achievedAt = now.toISOString()`; slower result → `isNewRecord: false`, stored record unchanged, `bestMs` = old; faster → replaced; records of two sets independent; `clearMatchingRecord('s1')` removes only `s1`; corrupted JSON / entries without numeric `bestMs` / throwing storage / `undefined` storage → no records and no throw
+
+### Implementation for User Story 2
+
+- [X] T013 [US2] Implement lib/preferences/matching-records.ts (`MATCHING_RECORDS_KEY`, `MatchingRecord`, `isNewRecord`, `loadMatchingRecords`, `submitMatchingResult`, `clearMatchingRecord`) per data-model.md „Rekord zestawu” — makes T012 pass
+- [X] T014 [US2] Create hooks/use-matching-record.ts: `useMatchingRecord(setId)` → `{ bestMs: number | null, submit(timeMs) → { isNewRecord, previousBestMs, bestMs } }` via `browserStorage()`; `submit` updates `bestMs` state
+- [X] T015 [US2] Update app/components/matching/MatchingGame.tsx: prop `onFinished: (timeMs: number) => RecordOutcome`; call it exactly once when the round finishes (not on „Zakończ”), keep the outcome in state and pass it to `MatchingResult`
+- [X] T016 [P] [US2] Update app/components/matching/MatchingResult.tsx: prop `record: { isNewRecord, bestMs }`; when `isNewRecord` show highlighted „Nowy rekord!” next to the time; otherwise show „Rekord: {formatSeconds(bestMs)}”
+- [X] T017 [US2] Update app/matching/page.tsx: use `useMatchingRecord(setId)`; start screen shows „Rekord: {formatSeconds(bestMs)}” when present; pass `onFinished={submit}` to `MatchingGame`
+- [X] T018 [US2] Clear the record on set deletion: call `clearMatchingRecord(id, browserStorage())` in `useWordSetActions().deleteSet` (hooks/use-word-sets.ts) — FR-013
+
+---
+
+## Phase 5: Polish (US2)
+
+- [X] T019 Run quality gates: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`
+- [ ] T020 Run quickstart.md „Scenariusz US2” manually
+
+---
+
+## Phase 6: User Story 3 - Wynik wpływa na postęp słówek (Priority: P3)
+
+**Goal**: Po ukończonej rundzie słówka z błędami dostają „Nie znam” (zeruje serię, odbiera opanowanie), bezbłędne — „Znam” bez zmiany serii; pary wybierane wg priorytetu postępu.
+
+**Independent Test**: quickstart.md „Scenariusz US3”.
+
+### Tests for User Story 3 ⚠️
+
+- [X] T021 [US3] Extend tests/unit/matching/game.test.ts: `roundResult` of a finished round with a mistake between A and B → `timeMs` equals `elapsedMs(state, finishedAt)`, ratings `{ entryId: A, rating: 'unknown', firstInSession: true }`, same for B, and `{ rating: 'known', firstInSession: false }` for error-free pairs, one rating per pair; `selectPairs(entries, { progress, random })` puts entries with `lastRating: 'unknown'` first, keeps de-duplication of texts, max 6; without `progress` behaviour unchanged
+- [X] T022 [P] [US3] Extend tests/unit/progress/progress.test.ts: applying matching ratings with `applyRating` — `unknown` + `firstInSession: true` on mastered progress → `mastered: false`, streak 0; `known` + `firstInSession: false` on progress with streak 1 → streak stays 1, `mastered` unchanged
+
+### Implementation for User Story 3
+
+- [X] T023 [US3] In lib/matching/game.ts add `progress?: Record<string, WordProgress>` option to `selectPairs` (order with `orderEntriesForSession` before de-duplication, else shuffle) and implement `roundResult(state)` returning `{ timeMs, ratings }` per data-model.md — makes T021 pass (T022 should pass with existing `applyRating`)
+- [X] T024 [US3] Update app/components/matching/MatchingGame.tsx: `onFinished` receives `roundResult(state)` (`{ timeMs, ratings }`) instead of a bare time; still called exactly once per finished round
+- [X] T025 [US3] Update app/matching/page.tsx: use `useWordProgress(setId)`; keep „Start” disabled until progress is loaded; `selectPairs(data.entries, { progress })`; on finish call `saveRating` for every rating, then `submit(result.timeMs)` for the record; show `storageWarning` as an `Alert`
+- [X] T026 [P] [US3] Update specs/004-matching-game/contracts/matching-game.md (`MatchingGame.onFinished` receives `{ timeMs, ratings }`) if signatures differ from the implementation
+
+---
+
+## Phase 7: Polish (US3)
+
+- [X] T027 Run quality gates: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`
+- [ ] T028 Run quickstart.md „Scenariusz US3” manually
+
+---
+
 ## Dependencies & Execution Order
 
 - T001 → (T002, T003 parallel) → T004 (after T002), T005 (after T003) → T006 parallel with T004/T005 → T007 (after T004, T006) → T008 (after T005, T007); T009 any time; T010 after T001–T009; T011 last.
+- US2: T012 → T013 → T014 → (T015, T016 parallel) → T017; T018 after T013; T019 after T012–T018; T020 last.
+- US3: T021, T022 parallel → T023 → T024 → T025; T026 any time after T024; T027 after T021–T026; T028 last.
 
 ## Implementation Strategy
 

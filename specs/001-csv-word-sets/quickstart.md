@@ -47,3 +47,13 @@ treść identyczna ze źródłem — SC-002) oraz plik 2000 wierszy (SC-003, par
    komunikat, zestaw zniknął; etykieta „Ostatnio uczony” znika, jeśli dotyczyła tego zestawu.
 6. Otwórz `/set?id=nieistniejacy` → „Nie znaleziono zestawu” z linkiem do listy.
 7. Wszystkie kroki dotykiem na 360 px i samą klawiaturą (okna dialogowe: Tab, Esc zamyka).
+
+## Scenariusz US5 — zestaw przykładowy i wzór CSV
+
+1. Pusta aplikacja (DevTools → Application → wyczyść IndexedDB `parleme`) → zachęta z akcjami
+   „Importuj CSV” i „Dodaj zestaw przykładowy”.
+2. „Dodaj zestaw przykładowy” → komunikat, lista pokazuje „Przykład: ITA5” z 57 słówkami;
+   fiszki i dopasowywanie działają na nim.
+3. Strona importu → „Pobierz wzór CSV” zapisuje `parleme-wzor.csv`; zaimportowanie go → podgląd
+   bez pominiętych wierszy.
+4. Offline (build produkcyjny) → „Dodaj zestaw przykładowy” działa bez sieci.

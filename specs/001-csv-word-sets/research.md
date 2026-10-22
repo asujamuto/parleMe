@@ -133,3 +133,16 @@ przygotowaniem pod US2–US5 i przyszłe tryby, bez ich implementacji w P1.
 - **Rationale**: Spełnia „wybór zapamiętany między wizytami” bez osobnego ekranu wyboru źródła
   i bez migracji bazy (zasada VII). Brak/uszkodzenie wpisu nie wpływa na dane nauki.
 - **Alternatives considered**: magazyn `settings` w IndexedDB (migracja v3 dla jednej wartości).
+
+## R14. Zestaw przykładowy i wzór CSV (US5)
+
+- **Decision**: Jeden zestaw „Przykład: ITA5” złożony z 4 plików `app/data/2ita1/*.csv`, wbudowany
+  jako tekst CSV w module `lib/word-sets/sample.ts` (`SAMPLE_CSV`) i tworzony tą samą ścieżką co
+  import (`parseWordsCsv` → `buildWordSet` ze źródłem `'sample'`). Wzór do pobrania
+  (`TEMPLATE_CSV`, przykład z contracts/csv-format.md) zapisywany przez `Blob` jako
+  `parleme-wzor.csv` (UTF-8 z BOM).
+- **Rationale**: Konstytucja I dopuszcza treść w kodzie wyłącznie jako zestaw demonstracyjny;
+  moduł działa offline bez dodatkowych zasobów w cache; ta sama walidacja co przy imporcie.
+  Test porównuje `SAMPLE_CSV` z plikami źródłowymi, by nie rozjechały się po edycji.
+- **Alternatives considered**: 4 osobne zestawy (spec mówi o „zestawie”); pobieranie plików z
+  `public/` (dodatkowe wpisy w cache service workera i obsługa braku sieci).

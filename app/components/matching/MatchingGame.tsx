@@ -9,9 +9,12 @@ import {
   elapsedMs,
   formatSeconds,
   matchingReducer,
+  roundResult,
   type MatchingAction,
+  type MatchingRoundResult,
   type MatchingTile,
 } from '@/lib/matching/game';
+import type { RecordOutcome } from '@/lib/preferences/matching-records';
 import { cn } from '@/lib/utils';
 import type { WordEntry } from '@/lib/word-sets/types';
 import { MatchingResult } from './MatchingResult';
@@ -22,6 +25,8 @@ interface MatchingGameProps {
   pairs: WordEntry[];
   exitHref: string;
   onRestart: () => void;
+  /** Wywoływane raz po ukończeniu rundy (nie przy „Zakończ”). */
+  onFinished: (result: MatchingRoundResult) => RecordOutcome;
 }
 
 function textSizeClass(text: string) {
@@ -30,7 +35,7 @@ function textSizeClass(text: string) {
   return 'text-sm';
 }
 
-export function MatchingGame({ pairs, exitHref, onRestart }: MatchingGameProps) {
+export function MatchingGame({ pairs, exitHref, onRestart, onFinished }: MatchingGameProps) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [state, dispatch] = useReducer(matchingReducer, undefined, () =>
@@ -41,7 +46,15 @@ export function MatchingGame({ pairs, exitHref, onRestart }: MatchingGameProps) 
   stateRef.current = state;
   const [now, setNow] = useState(() => Date.now());
   const [announcement, setAnnouncement] = useState('');
+  const [outcome, setOutcome] = useState<RecordOutcome | null>(null);
+  const reportedRef = useRef(false);
   const finished = state.finishedAt !== null;
+
+  useEffect(() => {
+    if (state.finishedAt === null || reportedRef.current) return;
+    reportedRef.current = true;
+    setOutcome(onFinished(roundResult(state)));
+  }, [state, onFinished]);
 
   useEffect(() => {
     if (finished) return;
@@ -68,9 +81,11 @@ export function MatchingGame({ pairs, exitHref, onRestart }: MatchingGameProps) 
   }, []);
 
   if (finished) {
+    if (!outcome) return null;
     return (
       <MatchingResult
         timeMs={elapsedMs(state, state.finishedAt!)}
+        record={outcome}
         mistakes={state.mistakes}
         errorPairs={state.pairs.filter((pair) => state.errorEntryIds.includes(pair.id))}
         exitHref={exitHref}

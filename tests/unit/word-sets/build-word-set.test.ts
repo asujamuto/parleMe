@@ -27,6 +27,13 @@ describe('buildWordSet', () => {
     });
   });
 
+  it('przekazuje źródło sample, domyślnie csv', () => {
+    expect(buildWordSet({ name: 'A', pairs, fileName: null, now, newId: sequentialIds(), source: 'sample' }).set.source).toBe(
+      'sample',
+    );
+    expect(buildWordSet({ name: 'A', pairs, fileName: null, now, newId: sequentialIds() }).set.source).toBe('csv');
+  });
+
   it('tworzy słówka z unikalnymi id i pozycją od 0', () => {
     const { set, entries } = buildWordSet({ name: 'A', pairs, fileName: null, now, newId: sequentialIds() });
 

@@ -7,6 +7,7 @@ import { createIndexedDbRepository } from '@/lib/word-sets/indexeddb-repository'
 import { StorageError, type WordSetRepository } from '@/lib/word-sets/repository';
 import { validateSetName } from '@/lib/word-sets/set-name';
 import { clearLastMode } from '@/lib/preferences/last-mode';
+import { clearMatchingRecord } from '@/lib/preferences/matching-records';
 import { clearLastStudiedSetId } from '@/lib/preferences/last-studied-set';
 import { browserStorage } from '@/lib/preferences/browser-storage';
 import type { ImportReport, WordEntry, WordSet } from '@/lib/word-sets/types';
@@ -48,7 +49,17 @@ export function useWordSets() {
     [reload],
   );
 
-  return { sets, loading, error, createFromImport };
+  /** Zapis gotowego zestawu (np. przykładowego) — bez importowania jego treści do każdej strony. */
+  const saveSet = useCallback(
+    async (set: WordSet, entries: WordEntry[]) => {
+      await getRepository().createSet(set, entries);
+      await reload();
+      return set;
+    },
+    [reload],
+  );
+
+  return { sets, loading, error, createFromImport, saveSet };
 }
 
 export function useWordSet(setId: string) {
@@ -94,6 +105,7 @@ export function useWordSetActions() {
     await getRepository().deleteSet(id);
     clearLastStudiedSetId(id, browserStorage());
     clearLastMode(id, browserStorage());
+    clearMatchingRecord(id, browserStorage());
   }, []);
 
   return { renameSet, deleteSet };

@@ -5,9 +5,11 @@ import {
   elapsedMs,
   formatSeconds,
   matchingReducer,
+  roundResult,
   selectPairs,
   type MatchingState,
 } from '@/lib/matching/game';
+import type { WordProgress } from '@/lib/progress/types';
 import type { WordEntry } from '@/lib/word-sets/types';
 
 function entry(id: string, italian: string, polish: string, position = 0): WordEntry {
@@ -141,5 +143,56 @@ describe('elapsedMs i formatSeconds', () => {
   it('formatuje czas z przecinkiem dziesiętnym', () => {
     expect(formatSeconds(12340)).toBe('12,3 s');
     expect(formatSeconds(0)).toBe('0,0 s');
+  });
+});
+
+function progressFor(entryId: string, lastRating: 'known' | 'unknown'): WordProgress {
+  return {
+    entryId,
+    setId: 's1',
+    lastRating,
+    lastRatedAt: '2026-10-22T10:00:00.000Z',
+    knownStreakSessions: lastRating === 'known' ? 1 : 0,
+    mastered: false,
+    knownTotal: 1,
+    unknownTotal: 0,
+  };
+}
+
+describe('selectPairs z postępem (US3)', () => {
+  it('najpierw słówka ostatnio „Nie znam”', () => {
+    const entries = makeEntries(12);
+    const progress = { e9: progressFor('e9', 'unknown'), e11: progressFor('e11', 'unknown'), e0: progressFor('e0', 'known') };
+
+    const pairs = selectPairs(entries, { progress, random: noShuffle });
+
+    expect(pairs).toHaveLength(6);
+    expect(new Set(pairs.slice(0, 2).map((p) => p.id))).toEqual(new Set(['e9', 'e11']));
+    expect(pairs.map((p) => p.id)).not.toContain('e0');
+  });
+
+  it('nadal pomija powtórzenia tekstu', () => {
+    const entries = [entry('a', 'prego', 'proszę'), entry('b', 'per favore', 'proszę'), entry('c', 'ciao', 'cześć')];
+    const progress = { b: progressFor('b', 'unknown') };
+
+    expect(selectPairs(entries, { progress, random: noShuffle }).map((p) => p.id)).toEqual(['b', 'c']);
+  });
+});
+
+describe('roundResult (US3)', () => {
+  it('słówka z błędem → „Nie znam” jak pierwsza ocena, bezbłędne → „Znam” bez zmiany serii', () => {
+    const pairs = [entry('a', 'ciao', 'cześć'), entry('b', 'grazie', 'dziękuję'), entry('c', 'prego', 'proszę')];
+    let state = createMatchingState(pairs, { now: 1000, random: noShuffle });
+    state = select(select(state, 'a:it'), 'b:pl');
+    for (const id of ['a', 'b', 'c']) state = select(select(state, `${id}:it`), `${id}:pl`, 5000);
+
+    const result = roundResult(state);
+
+    expect(result.timeMs).toBe(elapsedMs(state, 5000));
+    expect(result.ratings).toEqual([
+      { entryId: 'a', rating: 'unknown', firstInSession: true },
+      { entryId: 'b', rating: 'unknown', firstInSession: true },
+      { entryId: 'c', rating: 'known', firstInSession: false },
+    ]);
   });
 });

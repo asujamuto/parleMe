@@ -1,4 +1,4 @@
-import type { ImportedPair, WordEntry, WordSet } from './types';
+import type { ImportedPair, WordEntry, WordSet, WordSetSource } from './types';
 
 interface BuildWordSetInput {
   name: string;
@@ -6,9 +6,10 @@ interface BuildWordSetInput {
   fileName: string | null;
   now: Date;
   newId: () => string;
+  source?: WordSetSource;
 }
 
-export function buildWordSet({ name, pairs, fileName, now, newId }: BuildWordSetInput): {
+export function buildWordSet({ name, pairs, fileName, now, newId, source = 'csv' }: BuildWordSetInput): {
   set: WordSet;
   entries: WordEntry[];
 } {
@@ -16,7 +17,7 @@ export function buildWordSet({ name, pairs, fileName, now, newId }: BuildWordSet
   const set: WordSet = {
     id: newId(),
     name: name.trim(),
-    source: 'csv',
+    source,
     sourceFileName: fileName,
     entryCount: pairs.length,
     createdAt: timestamp,

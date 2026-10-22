@@ -12,7 +12,7 @@ description: "Task list for 001-csv-word-sets — scope P1 (User Story 1)"
 **Tests**: Wymagane przez konstytucję (zasada V) dla czystej logiki i repozytorium; UI ręcznie
 wg quickstart.md.
 
-**Organization**: Zakres: User Story 1 (P1) i User Story 2 (P2). US3–US5 zostaną dodane w kolejnych
+**Organization**: Zakres: User Story 1 (P1), User Story 2 (P2) i User Story 5 (P3). US3–US4 zostaną dodane w kolejnych
 iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -127,6 +127,33 @@ iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 
 ---
 
+## Phase 7: User Story 5 - Zestaw przykładowy na start (Priority: P3)
+
+**Goal**: Pusta aplikacja oferuje „Dodaj zestaw przykładowy” (słówka ITA5) obok „Importuj CSV”; strona importu pozwala pobrać wzór CSV (FR-021, FR-022).
+
+**Independent Test**: quickstart.md „Scenariusz US5”.
+
+### Tests for User Story 5 ⚠️
+
+- [X] T046 [US5] Write tests in tests/unit/word-sets/sample.test.ts: `parseWordsCsv(SAMPLE_CSV)` → status `ok`, 57 pairs, 0 skipped, 0 duplicates; pairs equal (in order) the pairs parsed from the 4 files in app/data/2ita1/ read from disk (guards against drift); `parseWordsCsv(TEMPLATE_CSV)` → ≥ 4 pairs, 0 skipped; `TEMPLATE_FILE_NAME === 'parleme-wzor.csv'`; `buildSampleSet({ now, newId })` → `set.name === SAMPLE_SET_NAME`, `set.source === 'sample'`, `set.sourceFileName === null`, `entryCount === 57`; extend tests/unit/word-sets/build-word-set.test.ts: `source: 'sample'` is passed through, default stays `'csv'`
+
+### Implementation for User Story 5
+
+- [X] T047 [US5] Add optional `source` (default `'csv'`) to `buildWordSet` in lib/word-sets/build-word-set.ts
+- [X] T048 [US5] Create lib/word-sets/sample.ts per contracts/word-set-repository.md „Zestaw przykładowy i wzór” — `SAMPLE_CSV` generated once from app/data/2ita1/*.csv (header once, files in alphabetical order, no BOM/CRLF), `TEMPLATE_CSV` = example from contracts/csv-format.md, `buildSampleSet` — makes T046 pass
+- [X] T049 [US5] Add `saveSet(set, entries)` to `useWordSets` in hooks/use-word-sets.ts (saves via repository, reloads list); the sample set is built with `buildSampleSet` in app/page.tsx only, so the sample text and CSV parser are not bundled into every page
+- [X] T050 [P] [US5] Create lib/word-sets/download.ts `downloadCsv(text, fileName)` (prepends BOM, `Blob` `text/csv;charset=utf-8`, temporary link click, revokes URL) and add „Pobierz wzór CSV” button (≥ 44 px, `Download` icon) to app/components/word-sets/ImportWizard.tsx start step
+- [X] T051 [US5] Update app/components/word-sets/EmptyState.tsx: second action „Dodaj zestaw przykładowy” (outline, ≥ 44 px, loading state) calling `onAddSample`; app/page.tsx builds the set with `buildSampleSet` and saves it with `saveSet` and shows toast „Dodano zestaw „Przykład: ITA5””; storage error → destructive toast with Polish message
+
+---
+
+## Phase 8: Polish (US5)
+
+- [X] T052 Run quality gates: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`
+- [ ] T053 Run quickstart.md „Scenariusz US5” manually
+
+---
+
 ## Dependencies & Execution Order
 
 - **Setup (T001–T007)**: T001 first (installs deps); T002–T004 parallel; T005–T007 after T001.
@@ -136,6 +163,7 @@ iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 - **US1 UI (T020–T028)**: T020 after T019; T021–T023, T026 parallel after T016–T018; T024 after T020–T023; T025 after T024; T027 after T020 + T026; T028 any time after T005.
 - **Polish (T029–T032)**: T029 parallel; T030 after T029; T031 after everything; T032 last.
 - **US2 (T033–T045)**: T033, T034 parallel; T035 after T033; T036 after T034; T037 after T035 + T036; T038, T039 parallel after T037; T040 after T038 + T039; T041, T042 after T037; T043 any time; T044 after T033–T043; T045 last.
+- **US5 (T046–T053)**: T046 → T047 → T048 → T049 → T051; T050 parallel after T048; T052 after T046–T051; T053 last.
 
 ## Parallel Example: User Story 1
 

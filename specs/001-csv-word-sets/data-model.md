@@ -8,7 +8,7 @@ Model obejmuje całą funkcję; w P1 używane są `WordSet`, `WordEntry` i `Impo
 |------|-----|--------|
 | `id` | string (UUID) | nadawany przy utworzeniu, niezmienny |
 | `name` | string | po `trim` 1–60 znaków (FR-007); nazwy mogą się powtarzać (ostrzeżenie w UI) |
-| `source` | `'csv' \| 'sample' \| 'manual'` | P1: zawsze `'csv'` |
+| `source` | `'csv' \| 'sample' \| 'manual'` | import pliku → `'csv'`; zestaw przykładowy (US5) → `'sample'`, `sourceFileName = null` |
 | `sourceFileName` | string \| null | nazwa importowanego pliku |
 | `entryCount` | number | liczba słówek; aktualizowana w tej samej transakcji co słówka |
 | `createdAt` | string (ISO 8601) | sortowanie listy malejąco (FR-009) |

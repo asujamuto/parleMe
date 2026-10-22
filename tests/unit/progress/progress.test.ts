@@ -129,3 +129,24 @@ describe('countMastered', () => {
     ).toBe(2);
   });
 });
+
+describe('applyRating dla wyników dopasowywania (004 US3)', () => {
+  it('„Nie znam” jako pierwsza ocena odbiera opanowanie', () => {
+    const mastered = progressFor('e1', { mastered: true, knownStreakSessions: 2 });
+
+    const progress = applyRating(mastered, { entryId: 'e1', setId: 's1', rating: 'unknown', firstInSession: true, now });
+
+    expect(progress.mastered).toBe(false);
+    expect(progress.knownStreakSessions).toBe(0);
+  });
+
+  it('„Znam” jako powtórka nie zmienia serii ani opanowania', () => {
+    const learning = progressFor('e1', { knownStreakSessions: 1, mastered: false });
+
+    const progress = applyRating(learning, { entryId: 'e1', setId: 's1', rating: 'known', firstInSession: false, now });
+
+    expect(progress.knownStreakSessions).toBe(1);
+    expect(progress.mastered).toBe(false);
+    expect(progress.lastRating).toBe('known');
+  });
+});

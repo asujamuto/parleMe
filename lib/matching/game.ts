@@ -1,3 +1,6 @@
+import type { Rating } from '@/lib/flashcards/session';
+import { orderEntriesForSession } from '@/lib/progress/progress';
+import type { WordProgress } from '@/lib/progress/types';
 import type { WordEntry } from '@/lib/word-sets/types';
 
 export const MATCHING_PAIRS = 6;
@@ -28,16 +31,35 @@ export interface MatchingState {
 
 export type MatchingAction = { type: 'select'; tileId: string; now: number } | { type: 'clearFeedback' };
 
+export interface MatchingRating {
+  entryId: string;
+  rating: Rating;
+  firstInSession: boolean;
+}
+
+export interface MatchingRoundResult {
+  timeMs: number;
+  ratings: MatchingRating[];
+}
+
+interface SelectPairsOptions {
+  random?: () => number;
+  maxPairs?: number;
+  /** Postęp słówek wg `entryId` — najpierw trudne słówka (FR-015); bez niego losowo. */
+  progress?: Record<string, WordProgress>;
+}
+
 /** Do `maxPairs` par bez powtórzeń tekstu włoskiego ani polskiego — każdy kafelek ma jeden odpowiednik. */
 export function selectPairs(
   entries: WordEntry[],
-  { random = Math.random, maxPairs = MATCHING_PAIRS }: { random?: () => number; maxPairs?: number } = {},
+  { random = Math.random, maxPairs = MATCHING_PAIRS, progress }: SelectPairsOptions = {},
 ): WordEntry[] {
   const seenItalian = new Set<string>();
   const seenPolish = new Set<string>();
   const pairs: WordEntry[] = [];
+  const ordered = progress ? orderEntriesForSession(entries, progress, random) : shuffle(entries, random);
 
-  for (const entry of shuffle(entries, random)) {
+  for (const entry of ordered) {
     if (pairs.length >= maxPairs) break;
     const italian = normalize(entry.italian);
     const polish = normalize(entry.polish);
@@ -110,6 +132,21 @@ export function matchingReducer(state: MatchingState, action: MatchingAction): M
 /** Czas rundy z karami; po zakończeniu się nie zmienia. */
 export function elapsedMs(state: MatchingState, now: number): number {
   return (state.finishedAt ?? now) - state.startedAt + state.mistakes * PENALTY_MS;
+}
+
+/**
+ * Oceny słówek po ukończonej rundzie (FR-014): błąd → „Nie znam” jak pierwsza ocena w sesji
+ * (odbiera opanowanie); bez błędu → „Znam” bez wpływu na serię — opanowanie tylko w fiszkach.
+ */
+export function roundResult(state: MatchingState): MatchingRoundResult {
+  return {
+    timeMs: elapsedMs(state, state.finishedAt ?? state.startedAt),
+    ratings: state.pairs.map((pair) =>
+      state.errorEntryIds.includes(pair.id)
+        ? { entryId: pair.id, rating: 'unknown', firstInSession: true }
+        : { entryId: pair.id, rating: 'known', firstInSession: false },
+    ),
+  };
 }
 
 /** `12340` → `"12,3 s"` */

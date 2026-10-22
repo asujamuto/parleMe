@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Download, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useWordSets } from '@/hooks/use-word-sets';
+import { downloadCsv } from '@/lib/word-sets/download';
 import { parseWordsCsv } from '@/lib/word-sets/parse-csv';
 import { StorageError } from '@/lib/word-sets/repository';
+import { TEMPLATE_CSV, TEMPLATE_FILE_NAME } from '@/lib/word-sets/sample';
 import { defaultSetName, validateSetName } from '@/lib/word-sets/set-name';
 import type { ImportReport } from '@/lib/word-sets/types';
 import { CsvFilePicker, type PickedFile } from './CsvFilePicker';
@@ -59,9 +61,20 @@ export function ImportWizard() {
           podgląd słówek.
         </p>
         <CsvFilePicker onFile={handleFile} />
-        <Button type="button" variant="ghost" className="h-11" onClick={() => router.push('/')}>
-          Anuluj
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11"
+            onClick={() => downloadCsv(TEMPLATE_CSV, TEMPLATE_FILE_NAME)}
+          >
+            <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+            Pobierz wzór CSV
+          </Button>
+          <Button type="button" variant="ghost" className="h-11" onClick={() => router.push('/')}>
+            Anuluj
+          </Button>
+        </div>
       </div>
     );
   }

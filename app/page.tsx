@@ -9,10 +9,29 @@ import { EmptyState } from '@/app/components/word-sets/EmptyState';
 import { WordSetList } from '@/app/components/word-sets/WordSetList';
 import { useLastStudiedSet } from '@/hooks/use-last-studied-set';
 import { useMasteredCounts } from '@/hooks/use-word-progress';
+import { useToast } from '@/hooks/use-toast';
 import { useWordSets } from '@/hooks/use-word-sets';
+import { newId } from '@/lib/word-sets/format';
+import { StorageError } from '@/lib/word-sets/repository';
+import { buildSampleSet } from '@/lib/word-sets/sample';
 
 export default function Home() {
-  const { sets, loading, error } = useWordSets();
+  const { sets, loading, error, saveSet } = useWordSets();
+  const { toast } = useToast();
+
+  const addSampleSet = async () => {
+    try {
+      const { set, entries } = buildSampleSet({ now: new Date(), newId });
+      await saveSet(set, entries);
+      toast({ title: `Dodano zestaw „${set.name}”` });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Nie udało się dodać zestawu przykładowego',
+        description: err instanceof StorageError ? err.message : undefined,
+      });
+    }
+  };
   const masteredCounts = useMasteredCounts();
   const { lastStudiedSetId } = useLastStudiedSet();
 
@@ -51,7 +70,7 @@ export default function Home() {
             <WordSetList sets={sets} masteredCounts={masteredCounts} lastStudiedSetId={lastStudiedSetId} />
           </section>
         ) : (
-          !error && <EmptyState />
+          !error && <EmptyState onAddSample={addSampleSet} />
         )}
       </div>
     </main>
