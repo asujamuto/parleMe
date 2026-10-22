@@ -36,6 +36,8 @@ interface FlashcardSessionProps {
   onRate: (rating: { entryId: string; rating: Rating; firstInSession: boolean }) => void;
   initialDirection: Direction;
   onDirectionChange: (direction: Direction) => void;
+  /** Dokąd prowadzą „Zakończ” i „Wróć do zestawu” (panel zestawu). */
+  exitHref: string;
 }
 
 export function FlashcardSession({
@@ -45,6 +47,7 @@ export function FlashcardSession({
   onRate,
   initialDirection,
   onDirectionChange,
+  exitHref,
 }: FlashcardSessionProps) {
   const router = useRouter();
   const [session, dispatch] = useReducer(reducer, undefined, () =>
@@ -106,7 +109,7 @@ export function FlashcardSession({
   };
 
   if (!card) {
-    return <SessionSummary summary={getSessionSummary(session)} onRestart={restart} />;
+    return <SessionSummary summary={getSessionSummary(session)} onRestart={restart} exitHref={exitHref} />;
   }
 
   const sides = cardSides(card, session.direction);
@@ -179,7 +182,7 @@ export function FlashcardSession({
       )}
 
       <div className="flex justify-center">
-        <Button type="button" variant="ghost" className="h-11" onClick={() => router.push('/')}>
+        <Button type="button" variant="ghost" className="h-11" onClick={() => router.push(exitHref)}>
           Zakończ
         </Button>
       </div>

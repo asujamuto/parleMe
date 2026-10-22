@@ -7,6 +7,10 @@ export interface WordSetRepository {
   getSet(id: string): Promise<{ set: WordSet; entries: WordEntry[] } | null>;
   /** Jedna transakcja — przy błędzie nic nie zostaje zapisane. */
   createSet(set: WordSet, entries: WordEntry[]): Promise<void>;
+  /** `null`, gdy zestaw nie istnieje. Nazwę waliduje wywołujący (`validateSetName`). */
+  renameSet(id: string, name: string, now: Date): Promise<WordSet | null>;
+  /** Jedna transakcja: zestaw, jego słówka i postęp nauki. */
+  deleteSet(id: string): Promise<void>;
 }
 
 export type StorageErrorCode = 'QUOTA_EXCEEDED' | 'UNAVAILABLE';

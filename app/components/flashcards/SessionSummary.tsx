@@ -8,9 +8,10 @@ import { formatDuration, type SessionSummary as Summary } from '@/lib/flashcards
 interface SessionSummaryProps {
   summary: Summary;
   onRestart: () => void;
+  exitHref: string;
 }
 
-export function SessionSummary({ summary, onRestart }: SessionSummaryProps) {
+export function SessionSummary({ summary, onRestart, exitHref }: SessionSummaryProps) {
   return (
     <section aria-labelledby="summary-heading" className="space-y-6">
       <h2 id="summary-heading" className="text-2xl font-bold">
@@ -45,7 +46,7 @@ export function SessionSummary({ summary, onRestart }: SessionSummaryProps) {
           Jeszcze raz
         </Button>
         <Button asChild variant="outline" className="h-11">
-          <Link href="/">Wróć do zestawów</Link>
+          <Link href={exitHref}>Wróć do zestawu</Link>
         </Button>
       </div>
     </section>

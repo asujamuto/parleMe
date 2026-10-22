@@ -33,3 +33,17 @@ treść identyczna ze źródłem — SC-002) oraz plik 2000 wierszy (SC-003, par
    (SC-006).
 9. Powtórz kroki 2–3 wyłącznie klawiaturą (Tab/Enter/Spacja) — każdy krok osiągalny (SC-007);
    brak przewijania w poziomie przy 360 px.
+
+## Scenariusz US2 — przeglądanie i zarządzanie zestawami
+
+1. Zaimportuj 3 pliki ITA5 → lista pokazuje 3 zestawy od najnowszego.
+2. Dotknij nazwy zestawu → strona zestawu z liczbą słówek, datą i pełną listą par
+   (włoski z `lang="it"`), akcje „Fiszki”, „Zmień nazwę”, „Usuń”.
+3. „Zmień nazwę” → pusta nazwa jest odrzucona z komunikatem; nazwa innego zestawu → ostrzeżenie
+   z propozycją „(2)”; poprawna nazwa → widoczna na stronie zestawu i na liście.
+4. Uruchom fiszki zestawu, wróć na listę → zestaw oznaczony „Ostatnio uczony” (także po
+   przeładowaniu).
+5. „Usuń” → okno potwierdzenia; „Anuluj” → nic się nie zmienia; „Usuń zestaw” → powrót na listę,
+   komunikat, zestaw zniknął; etykieta „Ostatnio uczony” znika, jeśli dotyczyła tego zestawu.
+6. Otwórz `/set?id=nieistniejacy` → „Nie znaleziono zestawu” z linkiem do listy.
+7. Wszystkie kroki dotykiem na 360 px i samą klawiaturą (okna dialogowe: Tab, Esc zamyka).

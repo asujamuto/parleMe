@@ -61,7 +61,18 @@ wybór pliku → analiza → [blocked] → komunikat → wybór pliku
                                      zapis nieudany → komunikat, podgląd zachowany
 ```
 
-## Poza P1 (dalej)
+## Operacje US2
 
-- `StudySource` (wybrany zestaw do nauki, FR-013) — magazyn `settings`, klucz `studySource`.
-- Postęp nauki — osobna funkcja; odwołuje się do `WordEntry.id`.
+| Operacja | Zmiana danych |
+|----------|---------------|
+| Zmiana nazwy | `WordSet.name` (po `trim`, 1–60 znaków), `updatedAt` = teraz; słówka i ich `id` bez zmian (FR-020) |
+| Usunięcie | jedna transakcja: `wordSets[id]`, wszystkie `wordEntries` z `setId = id`, wszystkie `wordProgress` z `setId = id` |
+
+## Ostatnio uczony zestaw (US2, FR-013)
+
+`localStorage`, klucz `parleme.lastStudiedSetId` → `WordSet.id`. Zapis przy otwarciu fiszek
+zestawu; usunięcie tego zestawu usuwa wpis; wpis wskazujący nieistniejący zestaw jest ignorowany.
+
+## Dalej
+
+- Postęp nauki — funkcja 002 (`WordProgress`, magazyn `wordProgress`).

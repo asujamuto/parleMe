@@ -105,3 +105,31 @@ przygotowaniem pod US2–US5 i przyszłe tryby, bez ich implementacji w P1.
 - **Alternatives considered**: `@serwist/next` / `next-pwa` (dodatkowa zależność i konfiguracja
   buildu dla jednej strony + importu); `output: 'export'` (wymaga przebudowy trasy `[slug]`,
   poza zakresem P1).
+
+## R11. Widok zestawu i zarządzanie (US2)
+
+- **Decision**: Statyczna strona `app/set/page.tsx` z parametrem `?id=<setId>` (jak fiszki w
+  002 — strona dynamiczna nie otworzyłaby się offline dla zestawów nieotwieranych online).
+  Zmiana nazwy w oknie dialogowym (`Dialog` + istniejący `SetNameField`), usuwanie przez
+  `AlertDialog` z potwierdzeniem.
+- **Rationale**: Ponowne użycie walidacji nazwy (`validateSetName`, `suggestUniqueName`) i
+  komponentów shadcn; jedna strona na wszystkie akcje zestawu.
+
+## R12. Usuwanie zestawu kaskadowo
+
+- **Decision**: `deleteSet(id)` usuwa w **jednej transakcji** rekord zestawu, jego słówka
+  (`wordEntries` po indeksie `setId`) i postęp (`wordProgress` po indeksie `setId`).
+- **Rationale**: FR-012 (001) i FR-015 (002) — brak osieroconych słówek i postępu nawet przy
+  przerwaniu operacji. Wszystkie magazyny są w tej samej bazie `parleme` v2.
+- **Alternatives considered**: osobne wywołanie `ProgressRepository.deleteBySet` po usunięciu
+  zestawu — dwie transakcje, możliwy stan pośredni.
+
+## R13. Źródło nauki (FR-013)
+
+- **Decision**: Tryby nauki uruchamia się akcją przy konkretnym zestawie („Fiszki”), więc
+  tryb zawsze dostaje słówka tylko z wybranego zestawu. Zapamiętywany jest **ostatnio uczony
+  zestaw** (`localStorage`, klucz `parleme.lastStudiedSetId`, zapis przy otwarciu fiszek); lista
+  oznacza go etykietą „Ostatnio uczony”. Usunięcie tego zestawu czyści zapis (edge case spec).
+- **Rationale**: Spełnia „wybór zapamiętany między wizytami” bez osobnego ekranu wyboru źródła
+  i bez migracji bazy (zasada VII). Brak/uszkodzenie wpisu nie wpływa na dane nauki.
+- **Alternatives considered**: magazyn `settings` w IndexedDB (migracja v3 dla jednej wartości).

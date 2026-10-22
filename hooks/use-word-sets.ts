@@ -5,6 +5,10 @@ import { buildWordSet } from '@/lib/word-sets/build-word-set';
 import { newId } from '@/lib/word-sets/format';
 import { createIndexedDbRepository } from '@/lib/word-sets/indexeddb-repository';
 import { StorageError, type WordSetRepository } from '@/lib/word-sets/repository';
+import { validateSetName } from '@/lib/word-sets/set-name';
+import { clearLastMode } from '@/lib/preferences/last-mode';
+import { clearLastStudiedSetId } from '@/lib/preferences/last-studied-set';
+import { browserStorage } from '@/lib/preferences/browser-storage';
 import type { ImportReport, WordEntry, WordSet } from '@/lib/word-sets/types';
 
 let repository: WordSetRepository | null = null;
@@ -51,10 +55,10 @@ export function useWordSet(setId: string) {
   const [data, setData] = useState<{ set: WordSet; entries: WordEntry[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     getRepository()
       .getSet(setId)
       .then((result) => {
@@ -72,7 +76,25 @@ export function useWordSet(setId: string) {
     return () => {
       cancelled = true;
     };
-  }, [setId]);
+  }, [setId, version]);
 
-  return { data, loading, error };
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+
+  return { data, loading, error, reload };
+}
+
+export function useWordSetActions() {
+  const renameSet = useCallback(async (id: string, name: string) => {
+    const validation = validateSetName(name);
+    if (!validation.ok) throw new Error(validation.message);
+    return getRepository().renameSet(id, name, new Date());
+  }, []);
+
+  const deleteSet = useCallback(async (id: string) => {
+    await getRepository().deleteSet(id);
+    clearLastStudiedSetId(id, browserStorage());
+    clearLastMode(id, browserStorage());
+  }, []);
+
+  return { renameSet, deleteSet };
 }

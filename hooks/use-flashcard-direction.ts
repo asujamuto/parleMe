@@ -2,15 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { Direction } from '@/lib/flashcards/session';
+import { browserStorage } from '@/lib/preferences/browser-storage';
 import { loadDirection, saveDirection } from '@/lib/preferences/flashcard-direction';
-
-function browserStorage(): Storage | undefined {
-  try {
-    return window.localStorage;
-  } catch {
-    return undefined;
-  }
-}
 
 export function useFlashcardDirection() {
   const [direction, setDirectionState] = useState<Direction>('it-pl');

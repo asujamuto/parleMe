@@ -12,7 +12,7 @@ description: "Task list for 001-csv-word-sets — scope P1 (User Story 1)"
 **Tests**: Wymagane przez konstytucję (zasada V) dla czystej logiki i repozytorium; UI ręcznie
 wg quickstart.md.
 
-**Organization**: Zakres tej listy to User Story 1 (P1). US2–US5 zostaną dodane w kolejnych
+**Organization**: Zakres: User Story 1 (P1) i User Story 2 (P2). US3–US5 zostaną dodane w kolejnych
 iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -95,6 +95,38 @@ iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 
 ---
 
+## Phase 5: User Story 2 - Przeglądanie i zarządzanie zestawami (Priority: P2)
+
+**Goal**: Użytkownik otwiera zestaw i widzi jego słówka, zmienia nazwę, usuwa zestaw (z potwierdzeniem, razem z postępem), a ostatnio uczony zestaw jest oznaczony na liście (FR-009–FR-013).
+
+**Independent Test**: quickstart.md sekcja „Scenariusz US2” — 3 zestawy, zmiana nazwy jednego, usunięcie drugiego, podgląd trzeciego; stan utrzymuje się po przeładowaniu.
+
+### Tests for User Story 2 ⚠️
+
+- [X] T033 [P] [US2] Extend tests/unit/word-sets/indexeddb-repository.test.ts: `renameSet(id, '  Nowa  ', now)` returns set with `name: 'Nowa'` and `updatedAt = now.toISOString()`, `createdAt` and entries (with their `id`) unchanged; `renameSet` of missing id → `null`; `deleteSet(id)` removes the set, all its `wordEntries` and all its `wordProgress` records (insert progress via `createIndexedDbProgressRepository(dbName).save`), leaving other sets, entries and progress intact; `deleteSet` of missing id resolves without error
+- [X] T034 [P] [US2] Write tests in tests/unit/preferences/last-studied-set.test.ts: key `parleme.lastStudiedSetId`; save/load round-trip with in-memory `Storage` stub; `loadLastStudiedSetId(undefined)` → `null`; throwing storage → `null` / no throw; `clearLastStudiedSetId('a')` removes entry only when it equals `'a'`
+
+### Implementation for User Story 2
+
+- [X] T035 [US2] Add `renameSet(id, name, now): Promise<WordSet | null>` and `deleteSet(id): Promise<void>` to `WordSetRepository` in lib/word-sets/repository.ts and implement them in lib/word-sets/indexeddb-repository.ts per data-model.md „Operacje US2”: rename trims `name` (1–60 znaków validated by caller), sets `updatedAt`; delete runs one readwrite transaction over `wordSets`, `wordEntries`, `wordProgress` deleting by `setId` index (makes T033 pass)
+- [X] T036 [P] [US2] Implement lib/preferences/last-studied-set.ts: `LAST_STUDIED_SET_KEY = 'parleme.lastStudiedSetId'`, `loadLastStudiedSetId(storage?)`, `saveLastStudiedSetId(id, storage?)`, `clearLastStudiedSetId(id, storage?)` — try/catch, never throw (makes T034 pass)
+- [X] T037 [US2] Extend hooks/use-word-sets.ts: `useWordSet` exposes `reload()`; new `useWordSetActions()` → `renameSet(id, name)` (validates with `validateSetName`, throws its message on invalid) and `deleteSet(id)` (calls repository, then `clearLastStudiedSetId(id, localStorage)`); create hooks/use-last-studied-set.ts → `{ lastStudiedSetId, markStudied(id) }` reading/writing via lib/preferences/last-studied-set.ts in `useEffect` with guarded `window.localStorage`
+- [X] T038 [P] [US2] Create app/components/word-sets/RenameSetDialog.tsx: `Dialog` with form, reuses `SetNameField` (existing names excluding the current set), „Zapisz” disabled while saving, Polish error on `StorageError`, closes and calls `onRenamed(set)` on success
+- [X] T039 [P] [US2] Create app/components/word-sets/DeleteSetDialog.tsx: `AlertDialog` „Usunąć zestaw „{name}”?” with description „Usunie {formatWordCount(n)} i postęp nauki tego zestawu. Tej operacji nie można cofnąć.”, buttons „Anuluj” and destructive „Usuń zestaw” (≥ 44 px); calls `onConfirm`
+- [X] T040 [US2] Create route app/set/page.tsx (client, `useSearchParams().get('id')` in `Suspense`): loading skeleton; not found → „Nie znaleziono zestawu” + link to `/`; header with name, `formatWordCount`, date `pl-PL`, „Opanowane: X / N” (from `useWordProgress` mastered count); actions „Fiszki” (`/flashcards?set=`), „Zmień nazwę” (RenameSetDialog → reload), „Usuń” (DeleteSetDialog → `deleteSet`, toast „Usunięto zestaw „{name}””, `router.push('/')`); full pair list (Italian `lang="it"`, Polish muted, no horizontal scroll at 360 px)
+- [X] T041 [US2] Update app/components/word-sets/WordSetList.tsx: set title links to `/set?id={id}` (≥ 44 px target), new prop `lastStudiedSetId` shows `Badge` „Ostatnio uczony”; pass `lastStudiedSetId` from `useLastStudiedSet()` in app/page.tsx
+- [X] T042 [US2] Call `markStudied(setId)` when a flashcard session loads its set in app/flashcards/page.tsx
+- [X] T043 [P] [US2] Add `/set` to `PRECACHE_PAGES` and bump `CACHE_VERSION` to `'v3'` in public/sw.js
+
+---
+
+## Phase 6: Polish (US2)
+
+- [X] T044 Run quality gates: `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build`
+- [ ] T045 Run quickstart.md „Scenariusz US2” manually (360 px, keyboard-only, after reload)
+
+---
+
 ## Dependencies & Execution Order
 
 - **Setup (T001–T007)**: T001 first (installs deps); T002–T004 parallel; T005–T007 after T001.
@@ -103,6 +135,7 @@ iteracjach (`/speckit-tasks`) na tym samym rdzeniu `lib/word-sets/`.
 - **US1 core (T016–T019)**: T016 after T011–T012; T017, T018 parallel; T019 after T015.
 - **US1 UI (T020–T028)**: T020 after T019; T021–T023, T026 parallel after T016–T018; T024 after T020–T023; T025 after T024; T027 after T020 + T026; T028 any time after T005.
 - **Polish (T029–T032)**: T029 parallel; T030 after T029; T031 after everything; T032 last.
+- **US2 (T033–T045)**: T033, T034 parallel; T035 after T033; T036 after T034; T037 after T035 + T036; T038, T039 parallel after T037; T040 after T038 + T039; T041, T042 after T037; T043 any time; T044 after T033–T043; T045 last.
 
 ## Parallel Example: User Story 1
 
