@@ -46,6 +46,24 @@
   czytał tłumaczenie przed odwróceniem. Jedna strona w DOM = brak „podpowiedzi” i prostszy kod.
 - **Alternatives considered**: Animacja CSS 3D z dwiema stronami (problem dostępności powyżej).
 
+## R7. Przechowywanie kierunku fiszek (US3)
+
+- **Decision**: `localStorage` (klucz `parleme.flashcardDirection`), odczyt/zapis w `try/catch`
+  z wartością domyślną `'it-pl'`; czyste funkcje `parseDirection`/`loadDirection`/`saveDirection`
+  z wstrzykiwanym `Storage` dla testów.
+- **Rationale**: Jedno ustawienie wygody użytkownika — migracja IndexedDB do v3 byłaby
+  nieproporcjonalna (zasada VII). Utrata ustawienia (tryb prywatny, wyczyszczone dane) nie
+  powoduje utraty nauki, tylko powrót do domyślnego kierunku.
+- **Alternatives considered**: magazyn `settings` w IndexedDB (migracja v3 dla jednej wartości);
+  parametr w adresie (nie spełnia „zapamiętany między sesjami”).
+
+## R8. Przełącznik kierunku a skróty klawiszowe (US3)
+
+- **Decision**: Przełącznik to `ToggleGroup` (shadcn/Radix) w kontenerze z atrybutem
+  `data-no-card-shortcuts`; globalna obsługa klawiszy sesji ignoruje zdarzenia z jego wnętrza.
+- **Rationale**: Radix obsługuje strzałki w grupie przełączników (przenoszenie fokusu) — bez
+  wykluczenia strzałka jednocześnie przełączałaby fokus i oceniała kartę.
+
 ## R6. Rozmiar tekstu
 
 - **Decision**: Rozmiar czcionki zależny od długości tekstu (≤ 30 znaków `text-3xl`, ≤ 80

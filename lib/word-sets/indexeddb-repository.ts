@@ -1,39 +1,8 @@
-import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { isQuotaExceeded, openParleMeDb } from '@/lib/storage/db';
 import { StorageError, type WordSetRepository } from './repository';
-import type { WordEntry, WordSet } from './types';
-
-const DB_VERSION = 1;
-
-interface ParleMeDB extends DBSchema {
-  wordSets: {
-    key: string;
-    value: WordSet;
-    indexes: { createdAt: string };
-  };
-  wordEntries: {
-    key: string;
-    value: WordEntry;
-    indexes: { setId: string };
-  };
-}
 
 export function createIndexedDbRepository(dbName = 'parleme'): WordSetRepository {
-  let dbPromise: Promise<IDBPDatabase<ParleMeDB>> | null = null;
-
-  function getDb() {
-    dbPromise ??= openDB<ParleMeDB>(dbName, DB_VERSION, {
-      upgrade(db) {
-        const sets = db.createObjectStore('wordSets', { keyPath: 'id' });
-        sets.createIndex('createdAt', 'createdAt');
-        const entries = db.createObjectStore('wordEntries', { keyPath: 'id' });
-        entries.createIndex('setId', 'setId');
-      },
-    }).catch((error: unknown) => {
-      dbPromise = null;
-      throw new StorageError('UNAVAILABLE', { cause: error });
-    });
-    return dbPromise;
-  }
+  const getDb = () => openParleMeDb(dbName);
 
   return {
     async listSets() {
@@ -65,7 +34,7 @@ export function createIndexedDbRepository(dbName = 'parleme'): WordSetRepository
           tx.done,
         ]);
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        if (isQuotaExceeded(error)) {
           throw new StorageError('QUOTA_EXCEEDED', { cause: error });
         }
         throw error;

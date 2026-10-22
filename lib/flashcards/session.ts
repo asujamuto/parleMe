@@ -1,3 +1,5 @@
+import { orderEntriesForSession } from '@/lib/progress/progress';
+import type { WordProgress } from '@/lib/progress/types';
 import type { WordEntry } from '@/lib/word-sets/types';
 
 export const MAX_CARDS_PER_ROUND = 20;
@@ -19,7 +21,10 @@ export interface FlashcardSession {
   finishedAt: number | null;
 }
 
-export type SessionAction = { type: 'flip' } | { type: 'rate'; rating: Rating; now: number };
+export type SessionAction =
+  | { type: 'flip' }
+  | { type: 'rate'; rating: Rating; now: number }
+  | { type: 'setDirection'; direction: Direction };
 
 export interface SessionSummary {
   knownFirstTry: number;
@@ -31,14 +36,20 @@ interface CreateSessionOptions {
   now: number;
   maxCards?: number;
   direction?: Direction;
+  /** Postęp słówek wg `entryId`; bez niego karty idą w kolejności z pliku. */
+  progress?: Record<string, WordProgress>;
+  random?: () => number;
 }
 
 export function createSession(
   setId: string,
   entries: WordEntry[],
-  { now, maxCards = MAX_CARDS_PER_ROUND, direction = 'it-pl' }: CreateSessionOptions,
+  { now, maxCards = MAX_CARDS_PER_ROUND, direction = 'it-pl', progress, random }: CreateSessionOptions,
 ): FlashcardSession {
-  const cards = [...entries].sort((a, b) => a.position - b.position).slice(0, maxCards);
+  const ordered = progress
+    ? orderEntriesForSession(entries, progress, random)
+    : [...entries].sort((a, b) => a.position - b.position);
+  const cards = ordered.slice(0, maxCards);
   return {
     setId,
     direction,
@@ -77,6 +88,9 @@ export function sessionReducer(state: FlashcardSession, action: SessionAction): 
       }
       return { ...state, queue: [...rest, cardId], flipped: false, firstRatings };
     }
+
+    case 'setDirection':
+      return state.direction === action.direction ? state : { ...state, direction: action.direction, flipped: false };
   }
 }
 

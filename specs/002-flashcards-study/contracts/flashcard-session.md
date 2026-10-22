@@ -4,8 +4,8 @@ Czyste funkcje, bez efektów ubocznych; czas wstrzykiwany parametrem `now` (ms).
 
 | Funkcja | Zwraca | Zachowanie |
 |---------|--------|------------|
-| `createSession(setId, entries, { now, maxCards = 20, direction = 'it-pl' })` | `FlashcardSession` | pierwsze `maxCards` słówek wg `position` |
-| `sessionReducer(state, action)` | `FlashcardSession` | akcje: `{ type: 'flip' }`, `{ type: 'rate', rating, now }` |
+| `createSession(setId, entries, { now, maxCards = 20, direction = 'it-pl', progress?, random? })` | `FlashcardSession` | bez `progress`: pierwsze `maxCards` wg `position`; z `progress`: kolejność `orderEntriesForSession` (FR-012) |
+| `sessionReducer(state, action)` | `FlashcardSession` | akcje: `{ type: 'flip' }`, `{ type: 'rate', rating, now }`, `{ type: 'setDirection', direction }` (US3: przód karty w nowym kierunku, runda bez zmian) |
 | `currentCard(state)` | `WordEntry \| null` | `null` po zakończeniu rundy |
 | `cardSides(card, direction)` | `{ front, back, frontLang, backLang }` | `it-pl`: przód włoski (`lang="it"`) |
 | `getSessionSummary(state)` | `SessionSummary` | tylko dla zakończonej rundy |

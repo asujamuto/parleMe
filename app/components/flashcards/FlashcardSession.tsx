@@ -5,16 +5,19 @@ import { useRouter } from 'next/navigation';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   cardSides,
   createSession,
   currentCard,
   getSessionSummary,
   sessionReducer,
+  type Direction,
   type FlashcardSession as Session,
   type Rating,
   type SessionAction,
 } from '@/lib/flashcards/session';
+import type { WordProgress } from '@/lib/progress/types';
 import { formatWordCount } from '@/lib/word-sets/format';
 import type { WordEntry, WordSet } from '@/lib/word-sets/types';
 import { FlipCard } from './FlipCard';
@@ -29,26 +32,53 @@ function reducer(state: Session, action: Action): Session {
 interface FlashcardSessionProps {
   set: WordSet;
   entries: WordEntry[];
+  progress: Record<string, WordProgress>;
+  onRate: (rating: { entryId: string; rating: Rating; firstInSession: boolean }) => void;
+  initialDirection: Direction;
+  onDirectionChange: (direction: Direction) => void;
 }
 
-export function FlashcardSession({ set, entries }: FlashcardSessionProps) {
+export function FlashcardSession({
+  set,
+  entries,
+  progress,
+  onRate,
+  initialDirection,
+  onDirectionChange,
+}: FlashcardSessionProps) {
   const router = useRouter();
   const [session, dispatch] = useReducer(reducer, undefined, () =>
-    createSession(set.id, entries, { now: Date.now() }),
+    createSession(set.id, entries, { now: Date.now(), progress, direction: initialDirection }),
   );
+  // Stan liczony synchronicznie, aby szybkie wielokrotne naciśnięcia nie zapisały oceny dwa razy.
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
   const cardRef = useRef<HTMLButtonElement>(null);
   const card = currentCard(session);
 
   const flip = useCallback(() => dispatch({ type: 'flip' }), []);
-  const rate = useCallback((rating: Rating) => {
-    dispatch({ type: 'rate', rating, now: Date.now() });
-    cardRef.current?.focus();
-  }, []);
+  const rate = useCallback(
+    (rating: Rating) => {
+      const before = sessionRef.current;
+      const rated = currentCard(before);
+      const action: SessionAction = { type: 'rate', rating, now: Date.now() };
+      const after = sessionReducer(before, action);
+      if (!rated || after === before) return;
+
+      sessionRef.current = after;
+      onRate({ entryId: rated.id, rating, firstInSession: !(rated.id in before.firstRatings) });
+      dispatch(action);
+      cardRef.current?.focus();
+    },
+    [onRate],
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target as HTMLElement | null;
+      // Strzałki w przełączniku kierunku przenoszą fokus — nie mogą oceniać karty.
+      if (target?.closest('[data-no-card-shortcuts]')) return;
       const onControl = target?.closest('button, a, input, textarea, select');
 
       if ((event.key === ' ' || event.key === 'Enter') && !onControl) {
@@ -64,7 +94,16 @@ export function FlashcardSession({ set, entries }: FlashcardSessionProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [flip, rate]);
 
-  const restart = () => dispatch({ type: 'restart', session: createSession(set.id, entries, { now: Date.now() }) });
+  const restart = () =>
+    dispatch({
+      type: 'restart',
+      session: createSession(set.id, entries, { now: Date.now(), progress, direction: session.direction }),
+    });
+
+  const changeDirection = (direction: Direction) => {
+    dispatch({ type: 'setDirection', direction });
+    onDirectionChange(direction);
+  };
 
   if (!card) {
     return <SessionSummary summary={getSessionSummary(session)} onRestart={restart} />;
@@ -75,6 +114,25 @@ export function FlashcardSession({ set, entries }: FlashcardSessionProps) {
 
   return (
     <div className="space-y-6">
+      <div data-no-card-shortcuts className="flex justify-center">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={session.direction}
+          onValueChange={(value) => {
+            if (value === 'it-pl' || value === 'pl-it') changeDirection(value);
+          }}
+          aria-label="Kierunek fiszek"
+        >
+          <ToggleGroupItem value="it-pl" className="h-11 px-4">
+            IT → PL
+          </ToggleGroupItem>
+          <ToggleGroupItem value="pl-it" className="h-11 px-4">
+            PL → IT
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-4 text-sm">
           <span className="font-medium">

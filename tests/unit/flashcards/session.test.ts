@@ -40,6 +40,40 @@ describe('createSession', () => {
     expect(session.direction).toBe('it-pl');
   });
 
+  it('z postępem zaczyna od słówek „Nie znam”, opanowane na końcu', () => {
+    const entries = makeEntries(4);
+    const base = { setId: 's1', lastRatedAt: '2026-10-22T10:00:00.000Z', knownTotal: 1, unknownTotal: 0 };
+    const progress = {
+      e0: { ...base, entryId: 'e0', lastRating: 'known' as const, knownStreakSessions: 2, mastered: true },
+      e2: { ...base, entryId: 'e2', lastRating: 'unknown' as const, knownStreakSessions: 0, mastered: false },
+    };
+
+    const session = createSession('s1', entries, { now: 0, progress, random: () => 0 });
+
+    expect(session.queue).toEqual(['e2', 'e1', 'e3', 'e0']);
+  });
+
+  it('z postępem nadal ogranicza rundę do 20 kart, wybierając najpierw „Nie znam”', () => {
+    const entries = makeEntries(30);
+    const progress = {
+      e29: {
+        entryId: 'e29',
+        setId: 's1',
+        lastRating: 'unknown' as const,
+        lastRatedAt: '2026-10-22T10:00:00.000Z',
+        knownStreakSessions: 0,
+        mastered: false,
+        knownTotal: 0,
+        unknownTotal: 1,
+      },
+    };
+
+    const session = createSession('s1', entries, { now: 0, progress });
+
+    expect(session.cards).toHaveLength(20);
+    expect(session.queue[0]).toBe('e29');
+  });
+
   it('ogranicza rundę do 20 kart', () => {
     const session = createSession('s1', makeEntries(2000), { now: 0 });
 
@@ -109,6 +143,33 @@ describe('sessionReducer', () => {
     session = answer(session, 'known');
 
     expect(session.firstRatings).toEqual({ e0: 'unknown' });
+  });
+});
+
+describe('kierunek fiszek', () => {
+  it('createSession przyjmuje kierunek pl-it', () => {
+    expect(createSession('s1', makeEntries(2), { now: 0, direction: 'pl-it' }).direction).toBe('pl-it');
+  });
+
+  it('setDirection zmienia kierunek i wraca na przód karty, nie ruszając rundy', () => {
+    let session = answer(createSession('s1', makeEntries(3), { now: 0 }), 'unknown');
+    session = sessionReducer(session, { type: 'flip' });
+
+    const changed = sessionReducer(session, { type: 'setDirection', direction: 'pl-it' });
+
+    expect(changed.direction).toBe('pl-it');
+    expect(changed.flipped).toBe(false);
+    expect(changed.queue).toEqual(session.queue);
+    expect(changed.firstRatings).toEqual(session.firstRatings);
+    expect(changed.knownCount).toBe(session.knownCount);
+  });
+
+  it('ten sam kierunek albo zakończona runda → ten sam obiekt stanu', () => {
+    const session = createSession('s1', makeEntries(1), { now: 0 });
+    expect(sessionReducer(session, { type: 'setDirection', direction: 'it-pl' })).toBe(session);
+
+    const finished = answer(session, 'known');
+    expect(sessionReducer(finished, { type: 'setDirection', direction: 'pl-it' })).toBe(finished);
   });
 });
 

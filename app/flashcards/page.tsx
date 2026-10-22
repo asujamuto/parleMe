@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FlashcardSession } from '@/app/components/flashcards/FlashcardSession';
+import { useFlashcardDirection } from '@/hooks/use-flashcard-direction';
+import { useWordProgress } from '@/hooks/use-word-progress';
 import { useWordSet } from '@/hooks/use-word-sets';
 
 export default function FlashcardsPage() {
@@ -32,8 +34,10 @@ export default function FlashcardsPage() {
 function FlashcardsContent() {
   const setId = useSearchParams().get('set') ?? '';
   const { data, loading, error } = useWordSet(setId);
+  const { progress, loading: progressLoading, saveRating, storageWarning } = useWordProgress(setId);
+  const { direction, ready: directionReady, setDirection } = useFlashcardDirection();
 
-  if (loading) return <LoadingState />;
+  if (loading || progressLoading || !directionReady) return <LoadingState />;
 
   if (error) {
     return (
@@ -59,7 +63,21 @@ function FlashcardsContent() {
   return (
     <>
       <h1 className="break-words text-2xl font-bold">{data.set.name}</h1>
-      <FlashcardSession key={data.set.id} set={data.set} entries={data.entries} />
+      {storageWarning && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>{storageWarning}</AlertDescription>
+        </Alert>
+      )}
+      <FlashcardSession
+        key={data.set.id}
+        set={data.set}
+        entries={data.entries}
+        progress={progress}
+        onRate={saveRating}
+        initialDirection={direction}
+        onDirectionChange={setDirection}
+      />
     </>
   );
 }

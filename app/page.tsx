@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/app/components/word-sets/EmptyState';
 import { WordSetList } from '@/app/components/word-sets/WordSetList';
+import { useMasteredCounts } from '@/hooks/use-word-progress';
 import { useWordSets } from '@/hooks/use-word-sets';
 
 export default function Home() {
   const { sets, loading, error } = useWordSets();
+  const masteredCounts = useMasteredCounts();
 
   return (
     <main className="min-h-screen bg-background">
@@ -44,7 +46,7 @@ export default function Home() {
             <h2 id="sets-heading" className="text-xl font-semibold">
               Twoje zestawy
             </h2>
-            <WordSetList sets={sets} />
+            <WordSetList sets={sets} masteredCounts={masteredCounts} />
           </section>
         ) : (
           !error && <EmptyState />

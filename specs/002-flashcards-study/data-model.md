@@ -33,8 +33,46 @@ restart:         nowa sesja z tych samych słówek zestawu
 | `repeated` | karty z pierwszą oceną „Nie znam” (lista `WordEntry`) |
 | `durationMs` | `finishedAt - startedAt` |
 
-## Dalej (US2, US3)
+## WordProgress (trwały — US2)
 
-- `WordProgress` (trwały, IndexedDB `wordProgress`, klucz `entryId`, indeks `setId`):
-  `lastRating`, `lastRatedAt`, `knownStreakSessions`, `mastered`, `knownTotal`, `unknownTotal`.
-- `StudyPreferences` (trwały): `flashcardDirection`.
+IndexedDB `parleme`, **wersja 2**: nowy magazyn `wordProgress` (keyPath `entryId`, indeks
+`setId`). Migracja v1 → v2 tylko dodaje magazyn — istniejące zestawy i słówka zostają.
+
+| Pole | Typ | Reguły |
+|------|-----|--------|
+| `entryId` | string | → `WordEntry.id` (stały identyfikator z 001) |
+| `setId` | string | → `WordSet.id`; usunięcie zestawu usuwa jego postęp (FR-015) |
+| `lastRating` | `'known' \| 'unknown'` | ostatnia ocena (także powtórki w rundzie) |
+| `lastRatedAt` | string (ISO 8601) | czas ostatniej oceny |
+| `knownStreakSessions` | number | kolejne sesje ze „Znam” przy **pierwszym** pokazaniu w sesji |
+| `mastered` | boolean | `knownStreakSessions >= 2` (FR-013) |
+| `knownTotal` / `unknownTotal` | number | liczniki wszystkich ocen |
+
+Przejścia (`applyRating`, przy każdej ocenie — FR-011):
+
+```text
+pierwsza ocena karty w sesji = known   → streak + 1, mastered = streak >= 2
+pierwsza ocena karty w sesji = unknown → streak = 0, mastered = false
+ocena powtórki w tej samej sesji       → tylko lastRating, lastRatedAt, liczniki
+każda ocena                            → lastRating, lastRatedAt, knownTotal/unknownTotal + 1
+```
+
+Kolejność kart nowej rundy (`orderEntriesForSession`, FR-012):
+
+```text
+1. lastRating = unknown            (losowo)
+2. bez postępu (nigdy pokazane)    (wg position)
+3. lastRating = known, !mastered   (losowo)
+4. mastered                        (losowo)
+→ pierwsze 20 kart
+```
+
+## StudyPreferences (trwały — US3)
+
+| Pole | Typ | Przechowywanie | Reguły |
+|------|-----|----------------|--------|
+| `flashcardDirection` | `'it-pl' \| 'pl-it'` | `localStorage`, klucz `parleme.flashcardDirection` | wartość nieznana / brak / błąd odczytu → `'it-pl'`; wspólny dla wszystkich zestawów (FR-016) |
+
+Zmiana kierunku w trakcie rundy (akcja `setDirection`): bieżąca karta wraca na przód w nowym
+kierunku (`flipped = false`); kolejka, oceny i liczniki rundy bez zmian. Postęp słówka
+(`WordProgress`) jest wspólny dla obu kierunków.

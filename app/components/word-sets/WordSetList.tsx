@@ -7,7 +7,12 @@ import type { WordSet } from '@/lib/word-sets/types';
 
 const dateFormat = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
 
-export function WordSetList({ sets }: { sets: WordSet[] }) {
+interface WordSetListProps {
+  sets: WordSet[];
+  masteredCounts?: Record<string, number>;
+}
+
+export function WordSetList({ sets, masteredCounts = {} }: WordSetListProps) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2" aria-label="Twoje zestawy">
       {sets.map((set) => (
@@ -18,6 +23,9 @@ export function WordSetList({ sets }: { sets: WordSet[] }) {
               <CardDescription>
                 {formatWordCount(set.entryCount)} · dodano {dateFormat.format(new Date(set.createdAt))}
               </CardDescription>
+              <p className="text-sm font-medium">
+                Opanowane: {masteredCounts[set.id] ?? 0} / {set.entryCount}
+              </p>
             </CardHeader>
             <CardFooter className="p-4 pt-0">
               <Button asChild className="h-11 w-full sm:w-auto">
